@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "lawejo",
     start_url: "/",
     display: "standalone",
-    background_color: "#111214",
-    theme_color: "#111214",
+    background_color: "#0b1129",
+    theme_color: "#0b1129",
   };
 }

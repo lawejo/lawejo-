@@ -44,6 +44,9 @@ function Week({ week, runs, open, today }: { week: number; runs: Run[]; open: bo
           {done > 0 && `${round(done)} / `}
           {round(planned)} km
         </span>
+        <div className="progress">
+          <span style={{ width: `${Math.min(100, (done / planned) * 100 || 0)}%` }} />
+        </div>
       </summary>
       {runs.map((run) => (
         <RunItem key={run.id} run={run} isToday={run.date === today} />
