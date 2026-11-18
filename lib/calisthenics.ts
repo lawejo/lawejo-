@@ -1,4 +1,5 @@
-import { queryAll, readDate, readNumber, readRelationIds, readSelect, readText } from "@/lib/notion";
+import { isFullPage } from "@notionhq/client";
+import { notion, queryAll, readDate, readNumber, readRelationIds, readSelect, readText } from "@/lib/notion";
 
 // Notion: Workout → Library → Calisthenics
 export const EXERCISES_DATA_SOURCE = "fb6c6c6e-749f-4f83-a733-3fcad60bec1b";
@@ -55,16 +56,25 @@ export async function getExercises(session: string): Promise<Exercise[]> {
   }));
 }
 
-export async function getLogForDate(date: string): Promise<LogEntry[]> {
-  const pages = await queryAll(LOG_DATA_SOURCE, {
-    filter: { property: "Dato", date: { equals: date } },
+// De seneste 100 log-rækker (ca. 3 uger) – nok til både "i dag" og "sidst" pr. øvelse.
+export async function getRecentLog(): Promise<LogEntry[]> {
+  const { results } = await notion.dataSources.query({
+    data_source_id: LOG_DATA_SOURCE,
+    sorts: [{ property: "Dato", direction: "descending" }],
+    page_size: 100,
   });
 
-  return pages.map(({ properties: p }) => ({
+  return results.filter(isFullPage).map(({ properties: p }) => ({
     exerciseIds: readRelationIds(p["Øvelse"]),
     sets: readText(p["Sæt × reps / s"]),
     date: readDate(p["Dato"]),
   }));
+}
+
+// Pas på selve træningsdagene (man/ons/fre), ellers null.
+export function sessionOn(isoDate: string) {
+  const day = new Date(`${isoDate}T12:00:00`).getDay();
+  return SESSIONS.find((_, i) => [1, 3, 5][i] === day) ?? null;
 }
 
 // Man → A, tir/ons → B, tor/fre → C, weekend → A (næste pas er mandag).

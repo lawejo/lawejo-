@@ -6,11 +6,12 @@ import {
   SESSIONS,
   defaultSession,
   getExercises,
-  getLogForDate,
+  getRecentLog,
   type Exercise,
   type LogEntry,
 } from "@/lib/calisthenics";
-import { todayIso } from "@/lib/date";
+import { dayLabel, todayIso } from "@/lib/date";
+import { SaveButton } from "@/components/SaveButton";
 import { logExercise } from "./actions";
 
 export default function CalisthenicsPage({ searchParams }: PageProps<"/calisthenics">) {
@@ -33,7 +34,7 @@ async function Session({ searchParams }: Pick<PageProps<"/calisthenics">, "searc
   const { pas } = await searchParams;
   const session = SESSIONS.find((s) => s.key === pas) ?? SESSIONS.find((s) => s.key === defaultSession(today))!;
 
-  const [exercises, todaysLog] = await Promise.all([getExercises(session.name), getLogForDate(today)]);
+  const [exercises, log] = await Promise.all([getExercises(session.name), getRecentLog()]);
 
   return (
     <>
@@ -49,14 +50,21 @@ async function Session({ searchParams }: Pick<PageProps<"/calisthenics">, "searc
           key={exercise.id}
           exercise={exercise}
           session={session.name}
-          logged={todaysLog.filter((entry) => entry.exerciseIds.includes(exercise.id))}
+          today={today}
+          entries={log.filter((entry) => entry.exerciseIds.includes(exercise.id))}
         />
       ))}
     </>
   );
 }
 
-function ExerciseItem({ exercise, session, logged }: { exercise: Exercise; session: string; logged: LogEntry[] }) {
+type ExerciseItemProps = { exercise: Exercise; session: string; today: string; entries: LogEntry[] };
+
+function ExerciseItem({ exercise, session, today, entries }: ExerciseItemProps) {
+  const logged = entries.filter((entry) => entry.date === today);
+  // Seneste gang før i dag – det er den, progressionsreglen (3×8 rent) skal sammenlignes med.
+  const last = entries.find((entry) => entry.date < today);
+
   return (
     <details className={`card exercise ${logged.length ? "today" : ""}`}>
       <summary>
@@ -66,9 +74,15 @@ function ExerciseItem({ exercise, session, logged }: { exercise: Exercise; sessi
           {exercise.variation}
           {exercise.dose && ` · ${exercise.dose}`}
         </span>
-        <span className="muted">{exercise.pr != null && `PR ${exercise.pr}`}</span>
+        <span className="muted">{last && `Sidst ${last.sets}`}</span>
       </summary>
 
+      {last && (
+        <p className="muted">
+          Sidst: <strong>{last.sets}</strong> · {dayLabel(last.date, today)}
+        </p>
+      )}
+      {exercise.pr != null && <p className="muted">PR: {exercise.pr}</p>}
       {exercise.superset && <p className="muted">Superset: {exercise.superset}</p>}
       {exercise.nextStep && <p className="muted">Næste trin: {exercise.nextStep}</p>}
       {logged.map((entry, i) => (
@@ -92,7 +106,7 @@ function ExerciseItem({ exercise, session, logged }: { exercise: Exercise; sessi
           Note
           <input name="note" />
         </label>
-        <button type="submit">Log</button>
+        <SaveButton label="Log" />
       </form>
     </details>
   );

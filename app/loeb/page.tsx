@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
-import { RACE_DATE, getRuns, pace, type Run } from "@/lib/runs";
+import { RACE_DATE, getRuns, nextRun, pace, type Run } from "@/lib/runs";
 import { dayLabel, daysUntil, todayIso } from "@/lib/date";
+import { SaveButton } from "@/components/SaveButton";
 import { updateRun } from "./actions";
 
 export default function LoebPage() {
@@ -19,25 +20,45 @@ async function RunPlan() {
   await connection();
   const runs = await getRuns();
   const today = todayIso();
-  const currentWeek = runs.find((run) => run.date >= today)?.week ?? runs.at(-1)?.week;
+  const next = nextRun(runs, today);
+  const currentWeek = next?.week ?? runs.at(-1)?.week;
   const weeks = Map.groupBy(runs, (run) => run.week);
 
   return (
     <>
       <p className="muted">7. marts 2027 · {daysUntil(RACE_DATE, today)} dage</p>
+
+      {next && (
+        <section className="hero">
+          <p className="eyebrow">
+            {next.date === today ? "Dagens pas" : "Næste pas"} · Uge {next.week}
+          </p>
+          <RunItem key={next.id} run={next} today={today} open />
+        </section>
+      )}
+
       {[...weeks].map(([week, weekRuns]) => (
-        <Week key={week} week={week} runs={weekRuns} open={week === currentWeek} today={today} />
+        <Week
+          key={week}
+          week={week}
+          runs={weekRuns}
+          today={today}
+          open={week === currentWeek}
+          past={weekRuns.every((run) => run.date < today)}
+        />
       ))}
     </>
   );
 }
 
-function Week({ week, runs, open, today }: { week: number; runs: Run[]; open: boolean; today: string }) {
+type WeekProps = { week: number; runs: Run[]; today: string; open: boolean; past: boolean };
+
+function Week({ week, runs, today, open, past }: WeekProps) {
   const planned = runs.reduce((sum, run) => sum + (run.planKm ?? 0), 0);
   const done = runs.reduce((sum, run) => sum + (run.km ?? 0), 0);
 
   return (
-    <details className="week" open={open}>
+    <details className={`week ${past ? "past" : ""}`} open={open}>
       <summary>
         <h2>Uge {week}</h2>
         <span className="muted">
@@ -49,22 +70,24 @@ function Week({ week, runs, open, today }: { week: number; runs: Run[]; open: bo
         </div>
       </summary>
       {runs.map((run) => (
-        <RunItem key={run.id} run={run} isToday={run.date === today} />
+        <RunItem key={run.id} run={run} today={today} />
       ))}
     </details>
   );
 }
 
-function RunItem({ run, isToday }: { run: Run; isToday: boolean }) {
+function RunItem({ run, today, open = false }: { run: Run; today: string; open?: boolean }) {
   const runPace = pace(run.time, run.km);
+  // Det du oftest gør, er at melde et pas gennemført som planlagt – så det er udgangspunktet.
+  const defaultStatus = run.status && run.status !== "Planlagt" ? run.status : "Gennemført";
 
   return (
-    <details className={`card run ${isToday ? "today" : ""}`}>
+    <details className={`card run ${run.date === today ? "today" : ""}`} open={open}>
       <summary>
         <strong className={run.type === "Tempo" ? "type-tempo" : undefined}>{run.title}</strong>
         <StatusBadge status={run.status} />
         <span className="muted">
-          {dayLabel(run.date)} · {run.planKm} km
+          {dayLabel(run.date, today)} · {run.planKm} km
           {run.hrTarget && ` · puls ${run.hrTarget}`}
         </span>
         <span className="muted">{runPace}</span>
@@ -75,7 +98,7 @@ function RunItem({ run, isToday }: { run: Run; isToday: boolean }) {
       <form action={updateRun.bind(null, run.id)}>
         <label className="full">
           Status
-          <select name="status" defaultValue={run.status || "Planlagt"}>
+          <select name="status" defaultValue={defaultStatus}>
             <option>Planlagt</option>
             <option>Gennemført</option>
             <option>Sprunget over</option>
@@ -83,11 +106,11 @@ function RunItem({ run, isToday }: { run: Run; isToday: boolean }) {
         </label>
         <label>
           Km
-          <input name="km" inputMode="decimal" defaultValue={run.km ?? ""} />
+          <input name="km" inputMode="decimal" defaultValue={run.km ?? run.planKm ?? ""} />
         </label>
         <label>
-          Tid (mm:ss)
-          <input name="time" defaultValue={run.time} placeholder="27:30" />
+          Tid
+          <input name="time" inputMode="numeric" defaultValue={run.time} placeholder="2610 = 26:10" />
         </label>
         <label>
           Snitpuls
@@ -105,7 +128,7 @@ function RunItem({ run, isToday }: { run: Run; isToday: boolean }) {
           Note
           <textarea name="note" rows={2} defaultValue={run.note} />
         </label>
-        <button type="submit">Gem</button>
+        <SaveButton label="Gem" />
       </form>
     </details>
   );

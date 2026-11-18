@@ -29,7 +29,8 @@ export async function getRuns(): Promise<Run[]> {
 
   return pages.map(({ id, properties: p }) => ({
     id,
-    title: readText(p["Pas"]),
+    // "Uge 2 · Let" → "Let": ugen vises allerede i overskriften.
+    title: readText(p["Pas"]).replace(/^Uge \d+ · /, ""),
     date: readDate(p["Dato"]),
     week: readNumber(p["Uge"]) ?? 0,
     type: readSelect(p["Type"]),
@@ -55,4 +56,19 @@ export function pace(time: string, km: number | null): string {
   const min = Math.floor(seconds / 60);
   const sec = seconds % 60;
   return `${min}:${String(sec).padStart(2, "0")}/km`;
+}
+
+// Første pas fra i dag og frem, som ikke er afsluttet.
+export function nextRun(runs: Run[], today: string): Run | undefined {
+  return runs.find((run) => run.date >= today && (run.status || "Planlagt") === "Planlagt");
+}
+
+// Tillader tid uden kolon (iPhones taltastatur har intet kolon): "2610" → "26:10", "10512" → "1:05:12".
+export function normalizeTime(raw: string): string {
+  const value = raw.trim();
+  if (!/^\d{3,6}$/.test(value)) return value;
+  const sec = value.slice(-2);
+  const min = value.slice(-4, -2);
+  const hours = value.slice(0, -4);
+  return hours ? `${hours}:${min}:${sec}` : `${Number(min)}:${sec}`;
 }
