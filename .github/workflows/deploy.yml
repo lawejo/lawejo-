@@ -1,0 +1,22 @@
+# Deployer til Vercel ved push til main.
+# Midlertidig løsning, fordi GitHub-kontoen ikke kan kobles direkte til Vercel-kontoen.
+# Kræver repo-secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID (de to sidste står i .vercel/project.json).
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency: deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      # Bygger på Vercel, så miljøvariablerne derfra bruges.
+      - run: npx vercel@latest deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
