@@ -10,6 +10,7 @@ import { dayLabel, todayIso } from "@/lib/date";
 const sections = [
   { href: "/loeb", title: "Løb", description: "Hegnet Half – plan og log", Today: RunToday },
   { href: "/calisthenics", title: "Calisthenics", description: "Dagens pas og log", Today: CalisthenicsToday },
+  { href: "/frokost", title: "Frokost", description: "Idéer til ca. 500 kcal" },
 ];
 
 export default function Home() {
@@ -19,9 +20,13 @@ export default function Home() {
         <li key={href}>
           <Link href={href} className="card">
             <h2>{title}</h2>
-            <Suspense fallback={<span className="muted">{description}</span>}>
-              <Today />
-            </Suspense>
+            {Today ? (
+              <Suspense fallback={<span className="muted">{description}</span>}>
+                <Today />
+              </Suspense>
+            ) : (
+              <span className="muted">{description}</span>
+            )}
           </Link>
         </li>
       ))}

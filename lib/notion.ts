@@ -36,6 +36,10 @@ export function readSelect(p: Property): string {
   return p?.type === "select" ? (p.select?.name ?? "") : "";
 }
 
+export function readMultiSelect(p: Property): string[] {
+  return p?.type === "multi_select" ? p.multi_select.map((o) => o.name) : [];
+}
+
 export function readDate(p: Property): string {
   return p?.type === "date" ? (p.date?.start ?? "") : "";
 }
