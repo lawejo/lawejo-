@@ -47,19 +47,33 @@ export async function setSkip(habitId: string, habitName: string, date: string, 
   await saveCheckIn(habitId, habitName, date, { skip, ...(skip && { count: 0 }) });
 }
 
+function habitProperties(formData: FormData) {
+  return {
+    Navn: { title: richText(formData.get("name")).rich_text },
+    Startdato: { date: { start: String(formData.get("start")) } },
+    "Mål dage": numberOrNull(formData.get("goalDays")),
+    "Pr. dag": numberOrNull(formData.get("perDay")),
+    Check: richText(formData.get("check")),
+    Hvornår: richText(formData.get("when")),
+    "Hvis-så": richText(formData.get("ifThen")),
+    Protokol: richText(formData.get("protocol")),
+  };
+}
+
 export async function createHabit(formData: FormData) {
   await notion.pages.create({
     parent: { data_source_id: HABITS_DATA_SOURCE },
+    properties: { ...habitProperties(formData), Status: { select: { name: "Aktiv" } } },
+  });
+  refresh();
+}
+
+export async function updateHabit(habitId: string, formData: FormData) {
+  await notion.pages.update({
+    page_id: habitId,
     properties: {
-      Navn: { title: richText(formData.get("name")).rich_text },
-      Status: { select: { name: "Aktiv" } },
-      Startdato: { date: { start: String(formData.get("start")) } },
-      "Mål dage": numberOrNull(formData.get("goalDays")),
-      "Pr. dag": numberOrNull(formData.get("perDay")),
-      Check: richText(formData.get("check")),
-      Hvornår: richText(formData.get("when")),
-      "Hvis-så": richText(formData.get("ifThen")),
-      Protokol: richText(formData.get("protocol")),
+      ...habitProperties(formData),
+      Status: { select: { name: String(formData.get("status")) } },
     },
   });
   refresh();

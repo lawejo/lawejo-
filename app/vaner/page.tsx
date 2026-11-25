@@ -5,7 +5,7 @@ import { SUCCESS_RATE, addDays, getCheckIns, getHabits, habitStats, type Habit, 
 import { daysUntil, todayIso } from "@/lib/date";
 import { ActionButton } from "@/components/ActionButton";
 import { ActionForm } from "@/components/ActionForm";
-import { createHabit, setCount, setSkip } from "./actions";
+import { createHabit, setCount, setSkip, updateHabit } from "./actions";
 
 export default function VanerPage({ searchParams }: PageProps<"/vaner">) {
   return (
@@ -42,40 +42,60 @@ async function HabitList({ searchParams }: Pick<PageProps<"/vaner">, "searchPara
           <strong>Ny vane</strong>
         </summary>
         <ActionForm action={createHabit} label="Opret">
-          <label className="full">
-            Navn
-            <input name="name" required />
-          </label>
-          <label>
-            Mål (dage)
-            <input name="goalDays" inputMode="numeric" defaultValue={66} />
-          </label>
-          <label>
-            Gange pr. dag
-            <input name="perDay" inputMode="numeric" defaultValue={1} />
-          </label>
-          <label className="full">
-            Startdato
-            <input name="start" type="date" defaultValue={today} required />
-          </label>
-          <label className="full">
-            Hvornår tæller dagen som klaret?
-            <input name="check" />
-          </label>
-          <label className="full">
-            Hvornår og hvor
-            <input name="when" placeholder="Efter tandbørstning om morgenen" />
-          </label>
-          <label className="full">
-            Hvis-så-plan
-            <input name="ifThen" placeholder="Hvis jeg får trang, så …" />
-          </label>
-          <label className="full">
-            Protokol
-            <textarea name="protocol" rows={5} maxLength={2000} />
-          </label>
+          <HabitFields today={today} />
         </ActionForm>
       </details>
+    </>
+  );
+}
+
+// Felterne til en vane. Med `habit` er de udfyldt til redigering og har også Status.
+function HabitFields({ habit, today }: { habit?: Habit; today: string }) {
+  return (
+    <>
+      <label className="full">
+        Navn
+        <input name="name" defaultValue={habit?.name} required />
+      </label>
+      <label>
+        Mål (dage)
+        <input name="goalDays" inputMode="numeric" defaultValue={habit?.goalDays ?? 66} />
+      </label>
+      <label>
+        Gange pr. dag
+        <input name="perDay" inputMode="numeric" defaultValue={habit?.perDay ?? 1} />
+      </label>
+      <label className={habit ? undefined : "full"}>
+        Startdato
+        <input name="start" type="date" defaultValue={habit?.start || today} required />
+      </label>
+      {habit && (
+        <label>
+          Status
+          <select name="status" defaultValue={habit.status}>
+            <option>Aktiv</option>
+            <option>Vedligehold</option>
+            <option>Pause</option>
+            <option>Arkiveret</option>
+          </select>
+        </label>
+      )}
+      <label className="full">
+        Hvornår tæller dagen som klaret?
+        <input name="check" defaultValue={habit?.check} />
+      </label>
+      <label className="full">
+        Hvornår og hvor
+        <input name="when" defaultValue={habit?.when} placeholder="Efter tandbørstning om morgenen" />
+      </label>
+      <label className="full">
+        Hvis-så-plan
+        <input name="ifThen" defaultValue={habit?.ifThen} placeholder="Hvis jeg får trang, så …" />
+      </label>
+      <label className="full">
+        Protokol
+        <textarea name="protocol" rows={habit ? 10 : 5} maxLength={2000} defaultValue={habit?.protocol} />
+      </label>
     </>
   );
 }
@@ -131,6 +151,12 @@ function HabitCard({ habit, stats, date }: { habit: Habit; stats: HabitStats; da
           </p>
         )}
         {habit.protocol && <p className="protocol">{habit.protocol}</p>}
+        <details>
+          <summary className="muted">Redigér</summary>
+          <ActionForm action={updateHabit.bind(null, habit.id)} label="Gem">
+            <HabitFields habit={habit} today={date} />
+          </ActionForm>
+        </details>
         <p className="muted">
           Succes: mindst {percent(SUCCESS_RATE)} af dagene klaret over {habit.goalDays} dage. En glemt dag gør
           ikke noget, bare kom tilbage dagen efter.
