@@ -44,6 +44,10 @@ export function readDate(p: Property): string {
   return p?.type === "date" ? (p.date?.start ?? "") : "";
 }
 
+export function readCheckbox(p: Property): boolean {
+  return p?.type === "checkbox" ? p.checkbox : false;
+}
+
 export function readRelationIds(p: Property): string[] {
   return p?.type === "relation" ? p.relation.map((r) => r.id) : [];
 }

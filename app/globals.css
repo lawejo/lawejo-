@@ -354,3 +354,84 @@ button.saved {
   padding-left: 18px;
   font-size: 0.9rem;
 }
+
+.habit header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.habit p {
+  margin: 6px 0;
+}
+
+/* Én prik pr. dag i målperioden. */
+.chain {
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  gap: 3px;
+  margin: 10px 0;
+}
+
+.chain span {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  background: var(--border);
+}
+
+.chain .done {
+  background: var(--done);
+}
+
+.chain .partial {
+  background: color-mix(in srgb, var(--done) 45%, transparent);
+}
+
+.chain .miss {
+  background: transparent;
+  outline: 1px solid var(--border);
+}
+
+.chain .skip {
+  background: color-mix(in srgb, var(--muted) 40%, transparent);
+}
+
+.chain .open {
+  outline: 1px solid var(--moon);
+  background: transparent;
+}
+
+.chain .future {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.check-buttons {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.check-buttons button {
+  flex: 1;
+}
+
+button.secondary {
+  flex: 0 0 auto;
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+button.secondary.active {
+  border-color: var(--moon);
+  color: var(--moon);
+}
+
+button.failed {
+  background: var(--skipped);
+}
+
+.protocol {
+  white-space: pre-line;
+}
