@@ -46,30 +46,31 @@ export async function loginOptions() {
 }
 
 // Returnerer en fejltekst, eller null når du er logget ind.
+// Passkeyen findes på signaturen og ikke på id'et, fordi NordPass ikke altid
+// melder samme id ved login som ved oprettelse. Det er signaturen, der beviser adgang.
 export async function login(response: AuthenticationResponseJSON): Promise<string | null> {
   const expectedChallenge = await takeChallenge();
-  const passkey = passkeys().find((p) => p.id === response.id);
   const session = createSession();
-  if (!passkey) {
-    const known = passkeys().map((p) => `${p.id.slice(0, 8)}…`).join(", ") || "ingen";
-    console.warn(`Ukendt passkey ${response.id}. PASSKEYS i denne deploy: ${known}`);
-    return `Passkeyen ${response.id.slice(0, 8)}… er ikke i PASSKEYS. Denne deploy kender: ${known}.`;
-  }
   if (!session) return "AUTH_SECRET mangler i Vercel.";
 
   const { rpID, origin } = await relyingParty();
-  try {
-    const { verified } = await verifyAuthenticationResponse({
-      response,
-      expectedChallenge,
-      expectedOrigin: origin,
-      expectedRPID: rpID,
-      credential: { id: passkey.id, publicKey: isoBase64URL.toBuffer(passkey.publicKey), counter: 0 },
-      requireUserVerification: true,
-    });
-    if (!verified) return "Login kunne ikke bekræftes.";
-  } catch {
-    return "Login kunne ikke bekræftes.";
+  const verified = await Promise.all(
+    passkeys().map(({ publicKey }) =>
+      verifyAuthenticationResponse({
+        response,
+        expectedChallenge,
+        expectedOrigin: origin,
+        expectedRPID: rpID,
+        credential: { id: response.id, publicKey: isoBase64URL.toBuffer(publicKey), counter: 0 },
+        requireUserVerification: true,
+      }).then((result) => result.verified, () => false),
+    ),
+  );
+
+  if (!verified.includes(true)) {
+    const known = passkeys().map((p) => `${p.id.slice(0, 8)}…`).join(", ") || "ingen";
+    console.warn(`Passkey ${response.id} passer ikke med PASSKEYS i denne deploy: ${known}`);
+    return `Passkeyen ${response.id.slice(0, 8)}… passer ikke med nogen i PASSKEYS (${known}).`;
   }
 
   (await cookies()).set(AUTH_COOKIE, session, {
