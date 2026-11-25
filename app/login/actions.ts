@@ -107,7 +107,9 @@ export async function register(response: RegistrationResponseJSON): Promise<stri
       requireUserVerification: true,
     });
     if (!verified) return null;
-    return `${registrationInfo.credential.id}:${isoBase64URL.fromBuffer(registrationInfo.credential.publicKey)}`;
+    // Gem det id, browseren selv melder. Nogle passkey-apps (fx NordPass) melder et andet
+    // id end det i authenticator-data, og det er browserens id, der kommer igen ved login.
+    return `${response.id}:${isoBase64URL.fromBuffer(registrationInfo.credential.publicKey)}`;
   } catch {
     return null;
   }
