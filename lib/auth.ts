@@ -28,11 +28,14 @@ export function isValidSession(value: string | undefined): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-// PASSKEYS i Vercel: kommaseparerede "id:offentlig-nøgle", én pr. passkey.
+// Passkeys ligger i Vercel som "id:offentlig-nøgle" i PASSKEYS eller i variabler, der starter
+// med PASSKEYS_ (fx PASSKEYS_IPHONE). Så kan en ny enhed få sin egen variabel, selvom en
+// hemmelig værdi ikke kan læses igen. Flere i samme variabel adskilles med komma.
 // Linjen til en ny passkey får du på /login/registrer.
 export function passkeys(): { id: string; publicKey: string }[] {
-  return (process.env.PASSKEYS ?? "")
-    .split(",")
+  return Object.entries(process.env)
+    .filter(([name]) => name === "PASSKEYS" || name.startsWith("PASSKEYS_"))
+    .flatMap(([, value]) => (value ?? "").split(","))
     .map((entry) => entry.trim().split(":"))
     .filter(([id, publicKey]) => id && publicKey)
     .map(([id, publicKey]) => ({ id, publicKey }));

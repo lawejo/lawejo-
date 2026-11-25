@@ -13,7 +13,7 @@ Ny sektion: tilføj en linje i `sections` i `app/page.tsx` og en route under `ap
 | --------------- | ------------------------------------------ |
 | `NOTION_TOKEN`  | Token fra Notion-integrationen "lawejo"    |
 | `AUTH_SECRET`   | Tilfældig nøgle, der signerer login-cookien |
-| `PASSKEYS`      | Passkeys med adgang, `id:nøgle` adskilt af komma |
+| `PASSKEYS`      | Passkeys med adgang, `id:nøgle` adskilt af komma. Flere variabler med navnet `PASSKEYS_<enhed>` virker også |
 
 Integrationen skal have adgang til Workout-siden i Notion (Content access).
 
