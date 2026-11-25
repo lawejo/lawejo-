@@ -63,14 +63,17 @@ export async function login(response: AuthenticationResponseJSON): Promise<strin
         expectedRPID: rpID,
         credential: { id: response.id, publicKey: isoBase64URL.toBuffer(publicKey), counter: 0 },
         requireUserVerification: true,
-      }).then((result) => result.verified, () => false),
+      }).then(
+        (result) => (result.verified ? true : "ikke verificeret"),
+        (error: Error) => error.message,
+      ),
     ),
   );
 
   if (!verified.includes(true)) {
     const known = passkeys().map((p) => `${p.id.slice(0, 8)}…`).join(", ") || "ingen";
-    console.warn(`Passkey ${response.id} passer ikke med PASSKEYS i denne deploy: ${known}`);
-    return `Passkeyen ${response.id.slice(0, 8)}… passer ikke med nogen i PASSKEYS (${known}).`;
+    console.warn(`Passkey ${response.id} afvist. PASSKEYS: ${known}. Fejl: ${verified.join(" | ")}`);
+    return `Passkeyen ${response.id.slice(0, 8)}… blev afvist (${known}): ${verified.join(" | ") || "ingen passkeys"}`;
   }
 
   (await cookies()).set(AUTH_COOKIE, session, {
