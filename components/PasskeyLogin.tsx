@@ -24,10 +24,14 @@ export function PasskeyLogin() {
       const loginError = await login(response);
       if (!loginError) return router.push("/");
       setError(loginError);
-    } catch {
-      setError("Login blev afbrudt.");
+    } catch (error) {
+      setError(
+        error instanceof Error && error.name === "NotAllowedError"
+          ? "Annulleret, eller der er ingen passkey til denne adresse."
+          : "Kunne ikke kontakte serveren. Genindlæs siden.",
+      );
     }
-    setOptions(await loginOptions());
+    loginOptions().then(setOptions, () => setError("Kunne ikke kontakte serveren. Genindlæs siden."));
   }
 
   return (
