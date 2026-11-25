@@ -51,7 +51,9 @@ export async function login(response: AuthenticationResponseJSON): Promise<strin
   const passkey = passkeys().find((p) => p.id === response.id);
   const session = createSession();
   if (!passkey) {
-    return `Passkeyen ${response.id.slice(0, 8)}… er ikke i PASSKEYS (${passkeys().length} passkeys i denne deploy).`;
+    const known = passkeys().map((p) => `${p.id.slice(0, 8)}…`).join(", ") || "ingen";
+    console.warn(`Ukendt passkey ${response.id}. PASSKEYS i denne deploy: ${known}`);
+    return `Passkeyen ${response.id.slice(0, 8)}… er ikke i PASSKEYS. Denne deploy kender: ${known}.`;
   }
   if (!session) return "AUTH_SECRET mangler i Vercel.";
 
