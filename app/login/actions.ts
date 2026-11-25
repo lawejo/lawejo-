@@ -95,7 +95,8 @@ export async function registerOptions() {
   const options = await generateRegistrationOptions({
     rpName: "lawejo",
     rpID,
-    userName: "lasse",
+    // Tidspunktet i navnet gør det muligt at skelne passkeys fra hinanden i NordPass.
+    userName: `lasse ${new Date().toLocaleString("da-DK", { timeZone: "Europe/Copenhagen", dateStyle: "short", timeStyle: "short" })}`,
     userID: new TextEncoder().encode("lasse"),
     attestationType: "none",
     supportedAlgorithmIDs: SUPPORTED_ALGORITHMS,
