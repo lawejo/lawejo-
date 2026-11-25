@@ -50,7 +50,9 @@ export async function login(response: AuthenticationResponseJSON): Promise<strin
   const expectedChallenge = await takeChallenge();
   const passkey = passkeys().find((p) => p.id === response.id);
   const session = createSession();
-  if (!passkey) return "Den passkey kender sitet ikke. Er den tilføjet til PASSKEYS?";
+  if (!passkey) {
+    return `Passkeyen ${response.id.slice(0, 8)}… er ikke i PASSKEYS (${passkeys().length} passkeys i denne deploy).`;
+  }
   if (!session) return "AUTH_SECRET mangler i Vercel.";
 
   const { rpID, origin } = await relyingParty();
