@@ -11,7 +11,7 @@ import {
   type LogEntry,
 } from "@/lib/calisthenics";
 import { dayLabel, todayIso } from "@/lib/date";
-import { SaveButton } from "@/components/SaveButton";
+import { ActionForm } from "@/components/ActionForm";
 import { logExercise } from "./actions";
 
 export default function CalisthenicsPage({ searchParams }: PageProps<"/calisthenics">) {
@@ -89,7 +89,7 @@ function ExerciseItem({ exercise, session, today, entries }: ExerciseItemProps) 
         <p key={i}>✓ I dag: {entry.sets}</p>
       ))}
 
-      <form action={logExercise.bind(null, exercise.id, session)}>
+      <ActionForm action={logExercise.bind(null, exercise.id, session)} label="Log">
         <label>
           Sæt × reps / s
           <input name="sets" placeholder="8/8/7" required />
@@ -106,8 +106,7 @@ function ExerciseItem({ exercise, session, today, entries }: ExerciseItemProps) 
           Note
           <input name="note" />
         </label>
-        <SaveButton label="Log" />
-      </form>
+      </ActionForm>
     </details>
   );
 }

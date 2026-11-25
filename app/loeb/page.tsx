@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { RACE_DATE, getRuns, nextRun, pace, type Run } from "@/lib/runs";
 import { dayLabel, daysUntil, todayIso } from "@/lib/date";
-import { SaveButton } from "@/components/SaveButton";
+import { ActionForm } from "@/components/ActionForm";
 import { updateRun } from "./actions";
 
 export default function LoebPage() {
@@ -95,7 +95,7 @@ function RunItem({ run, today, open = false }: { run: Run; today: string; open?:
 
       {run.planNote && <p className="muted">{run.planNote}</p>}
 
-      <form action={updateRun.bind(null, run.id)}>
+      <ActionForm action={updateRun.bind(null, run.id)} label="Gem">
         <label className="full">
           Status
           <select name="status" defaultValue={defaultStatus}>
@@ -128,8 +128,7 @@ function RunItem({ run, today, open = false }: { run: Run; today: string; open?:
           Note
           <textarea name="note" rows={2} defaultValue={run.note} />
         </label>
-        <SaveButton label="Gem" />
-      </form>
+      </ActionForm>
     </details>
   );
 }

@@ -10,7 +10,7 @@ export function PasskeyRegister() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    registerOptions().then(setOptions);
+    registerOptions().then(setOptions, () => setError("Kunne ikke starte oprettelsen. Genindlæs siden."));
   }, []);
 
   async function handleClick() {
@@ -42,9 +42,9 @@ export function PasskeyRegister() {
   return (
     <>
       <button type="button" onClick={handleClick} disabled={!options}>
-        Opret passkey
+        {options ? "Opret passkey" : "Vent…"}
       </button>
-      {error && <p className="muted">{error}</p>}
+      {error && <p className="error">{error}</p>}
     </>
   );
 }

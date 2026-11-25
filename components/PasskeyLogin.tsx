@@ -12,7 +12,7 @@ export function PasskeyLogin() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loginOptions().then(setOptions);
+    loginOptions().then(setOptions, () => setError("Kunne ikke starte login. Genindlæs siden."));
   }, []);
 
   async function handleClick() {
@@ -33,9 +33,9 @@ export function PasskeyLogin() {
   return (
     <>
       <button type="button" onClick={handleClick} disabled={!options}>
-        Log ind med passkey
+        {options ? "Log ind med passkey" : "Vent…"}
       </button>
-      {error && <p className="muted">{error}</p>}
+      {error && <p className="error">{error}</p>}
     </>
   );
 }
