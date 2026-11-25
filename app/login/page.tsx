@@ -1,16 +1,14 @@
-import { login } from "./actions";
+import Link from "next/link";
+import { PasskeyLogin } from "@/components/PasskeyLogin";
 
 export default function LoginPage() {
   return (
     <>
       <h1>Log ind</h1>
-      <form action={login}>
-        <label className="full">
-          Adgangskode
-          <input type="password" name="password" autoComplete="current-password" required />
-        </label>
-        <button type="submit">Log ind</button>
-      </form>
+      <PasskeyLogin />
+      <p className="muted">
+        Ny enhed eller ny passkey? <Link href="/login/registrer">Opret passkey</Link>
+      </p>
     </>
   );
 }
