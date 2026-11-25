@@ -44,7 +44,12 @@ async function takeChallenge(): Promise<string> {
 
 export async function loginOptions() {
   const { rpID } = await relyingParty();
-  const options = await generateAuthenticationOptions({ rpID, userVerification: "required" });
+  // Bed om præcis de passkeys, der ligger i PASSKEYS, så NordPass ikke vælger en gammel post.
+  const options = await generateAuthenticationOptions({
+    rpID,
+    userVerification: "required",
+    allowCredentials: passkeys().map(({ id }) => ({ id })),
+  });
   await saveChallenge(options.challenge);
   return options;
 }
@@ -77,7 +82,8 @@ export async function login(response: AuthenticationResponseJSON): Promise<strin
   if (!verified.includes(true)) {
     const known = passkeys().map((p) => `${p.id.slice(0, 8)}…`).join(", ") || "ingen";
     console.warn(`Passkey ${response.id} afvist. PASSKEYS: ${known}. Fejl: ${verified.join(" | ")}`);
-    return `Passkeyen ${response.id.slice(0, 8)}… blev afvist (${known}): ${verified.join(" | ") || "ingen passkeys"}`;
+    const user = response.response.userHandle ? isoBase64URL.toUTF8String(response.response.userHandle) : "ingen";
+    return `Passkeyen ${response.id.slice(0, 8)}… (bruger: ${user}) blev afvist (${known}): ${verified.join(" | ") || "ingen passkeys"}`;
   }
 
   (await cookies()).set(AUTH_COOKIE, session, {
