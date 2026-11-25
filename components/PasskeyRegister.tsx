@@ -42,7 +42,7 @@ export function PasskeyRegister() {
     return (
       <>
         <p>
-          Passkey oprettet. Id'et starter med <strong>{line.slice(0, 8)}</strong>.
+          Passkey oprettet. Id’et starter med <strong>{line.slice(0, 8)}</strong>.
         </p>
         <p className="muted">
           Tilføj linjen til <code>PASSKEYS</code> i Vercel og redeploy. Har du flere passkeys, adskilles de med komma.

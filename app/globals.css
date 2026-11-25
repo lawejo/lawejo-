@@ -333,3 +333,24 @@ button.saved {
   color: var(--skipped);
   font-size: 0.9rem;
 }
+
+.chips button {
+  font-size: 0.85rem;
+  font-weight: 400;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.chips button[aria-pressed="true"] {
+  border-color: var(--moon);
+  color: var(--moon);
+}
+
+.offers {
+  margin: 8px 0;
+  padding-left: 18px;
+  font-size: 0.9rem;
+}
