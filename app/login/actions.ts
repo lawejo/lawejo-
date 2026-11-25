@@ -14,6 +14,10 @@ import { AUTH_COOKIE, SESSION_DAYS, createSession, passkeys } from "@/lib/auth";
 
 const CHALLENGE_COOKIE = "lawejo_challenge";
 
+// Kun ES256 og RS256. SimpleWebAuthn 14 foreslår ellers ML-DSA-44 først,
+// og det håndterer NordPass på iPhone ikke korrekt (signaturen kan ikke verificeres).
+const SUPPORTED_ALGORITHMS = [-7, -257];
+
 // Passkeys er bundet til domænet, så en passkey fra lawejo.com virker ikke på en vercel.app-adresse.
 async function relyingParty() {
   const host = (await headers()).get("host") ?? "";
@@ -93,6 +97,7 @@ export async function registerOptions() {
     userName: "lasse",
     userID: new TextEncoder().encode("lasse"),
     attestationType: "none",
+    supportedAlgorithmIDs: SUPPORTED_ALGORITHMS,
     excludeCredentials: passkeys().map(({ id }) => ({ id })),
     authenticatorSelection: { residentKey: "required", userVerification: "required" },
   });
@@ -111,6 +116,7 @@ export async function register(response: RegistrationResponseJSON): Promise<stri
       expectedOrigin: origin,
       expectedRPID: rpID,
       requireUserVerification: true,
+      supportedAlgorithmIDs: SUPPORTED_ALGORITHMS,
     });
     if (!verified) return null;
     // Gem det id, browseren selv melder. Nogle passkey-apps (fx NordPass) melder et andet
