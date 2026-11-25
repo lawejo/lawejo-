@@ -44,12 +44,7 @@ async function takeChallenge(): Promise<string> {
 
 export async function loginOptions() {
   const { rpID } = await relyingParty();
-  // Bed om præcis de passkeys, der ligger i PASSKEYS, så NordPass ikke vælger en gammel post.
-  const options = await generateAuthenticationOptions({
-    rpID,
-    userVerification: "required",
-    allowCredentials: passkeys().map(({ id }) => ({ id })),
-  });
+  const options = await generateAuthenticationOptions({ rpID, userVerification: "required" });
   await saveChallenge(options.challenge);
   return options;
 }
