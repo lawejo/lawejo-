@@ -75,10 +75,9 @@ export async function login(response: AuthenticationResponseJSON): Promise<strin
   );
 
   if (!verified.includes(true)) {
-    const known = passkeys().map((p) => `${p.id.slice(0, 8)}…`).join(", ") || "ingen";
-    console.warn(`Passkey ${response.id} afvist. PASSKEYS: ${known}. Fejl: ${verified.join(" | ")}`);
-    const user = response.response.userHandle ? isoBase64URL.toUTF8String(response.response.userHandle) : "ingen";
-    return `Passkeyen ${response.id.slice(0, 8)}… (bruger: ${user}) blev afvist (${known}): ${verified.join(" | ") || "ingen passkeys"}`;
+    // Detaljerne står kun i Vercels logs, ikke på login-siden.
+    console.warn(`Passkey ${response.id} afvist: ${verified.join(" | ") || "ingen passkeys i Vercel"}`);
+    return "Passkeyen blev ikke godkendt. Er den lagt i Vercel, og er der redeployet?";
   }
 
   (await cookies()).set(AUTH_COOKIE, session, {
