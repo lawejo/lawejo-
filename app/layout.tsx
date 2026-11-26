@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { OfflineStatus } from "@/components/OfflineStatus";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,7 +19,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <header className="site-header">
           <Link href="/">lawejo</Link>
         </header>
-        <main>{children}</main>
+        <main>
+          <OfflineStatus />
+          {children}
+        </main>
       </body>
     </html>
   );
