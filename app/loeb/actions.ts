@@ -8,6 +8,7 @@ export async function updateRun(pageId: string, formData: FormData) {
   await notion.pages.update({
     page_id: pageId,
     properties: {
+      Dato: { date: { start: String(formData.get("date")) } },
       Status: { select: { name: String(formData.get("status")) } },
       "Faktisk km": numberOrNull(formData.get("km")),
       Tid: richText(normalizeTime(String(formData.get("time") ?? ""))),

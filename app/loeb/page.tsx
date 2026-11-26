@@ -78,8 +78,6 @@ function Week({ week, runs, today, open, past }: WeekProps) {
 
 function RunItem({ run, today, open = false }: { run: Run; today: string; open?: boolean }) {
   const runPace = pace(run.time, run.km);
-  // Det du oftest gør, er at melde et pas gennemført som planlagt – så det er udgangspunktet.
-  const defaultStatus = run.status && run.status !== "Planlagt" ? run.status : "Gennemført";
 
   return (
     <details className={`card run ${run.date === today ? "today" : ""}`} open={open}>
@@ -96,9 +94,13 @@ function RunItem({ run, today, open = false }: { run: Run; today: string; open?:
       {run.planNote && <p className="muted">{run.planNote}</p>}
 
       <ActionForm action={updateRun.bind(null, run.id)} label="Gem">
-        <label className="full">
+        <label>
+          Dato
+          <input name="date" type="date" defaultValue={run.date} required />
+        </label>
+        <label>
           Status
-          <select name="status" defaultValue={defaultStatus}>
+          <select name="status" defaultValue={run.status || "Planlagt"}>
             <option>Planlagt</option>
             <option>Gennemført</option>
             <option>Sprunget over</option>
