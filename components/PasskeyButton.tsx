@@ -2,11 +2,23 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { startAuthentication, type PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/browser";
-import { login, loginOptions } from "@/app/login/actions";
+import {
+  startAuthentication,
+  type AuthenticationResponseJSON,
+  type PublicKeyCredentialRequestOptionsJSON,
+} from "@simplewebauthn/browser";
+import { loginOptions } from "@/app/login/actions";
 
+type Props = {
+  action: (response: AuthenticationResponseJSON) => Promise<string | null>;
+  label: string;
+  redirectTo?: string; // ellers genindlæses siden
+  className?: string;
+};
+
+// Beder om passkey (Face ID) og sender svaret til `action`, fx login eller oplåsning af private vaner.
 // Options hentes på forhånd, så Face ID starter direkte i klikket. Safari kræver det.
-export function PasskeyLogin() {
+export function PasskeyButton({ action, label, redirectTo, className }: Props) {
   const router = useRouter();
   const [options, setOptions] = useState<PublicKeyCredentialRequestOptionsJSON | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -21,9 +33,9 @@ export function PasskeyLogin() {
     setError(null);
     try {
       const response = await startAuthentication({ optionsJSON: options });
-      const loginError = await login(response);
-      if (!loginError) return router.push("/");
-      setError(loginError);
+      const actionError = await action(response);
+      if (!actionError) return redirectTo ? router.push(redirectTo) : router.refresh();
+      setError(actionError);
     } catch (error) {
       setError(
         error instanceof Error && error.name === "NotAllowedError"
@@ -36,8 +48,8 @@ export function PasskeyLogin() {
 
   return (
     <>
-      <button type="button" onClick={handleClick} disabled={!options}>
-        {options ? "Log ind med passkey" : "Vent…"}
+      <button type="button" onClick={handleClick} disabled={!options} className={className}>
+        {options ? label : "Vent…"}
       </button>
       {error && <p className="error">{error}</p>}
     </>

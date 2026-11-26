@@ -57,6 +57,7 @@ function habitProperties(formData: FormData) {
     Hvornår: richText(formData.get("when")),
     "Hvis-så": richText(formData.get("ifThen")),
     Protokol: richText(formData.get("protocol")),
+    Privat: { checkbox: formData.get("private") === "ja" },
   };
 }
 

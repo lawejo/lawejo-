@@ -65,7 +65,8 @@ async function HabitsToday() {
   await connection();
   const today = todayIso();
   const [habits, checkIns] = await Promise.all([getHabits(), getCheckIns()]);
-  const started = habits.filter((h) => habitStats(h, checkIns, today).day >= 1);
+  // Private vaner tælles ikke med på forsiden.
+  const started = habits.filter((h) => !h.private && habitStats(h, checkIns, today).day >= 1);
   if (!started.length) return <span className="muted">Ingen vaner i gang</span>;
 
   const done = started.filter((h) => habitStats(h, checkIns, today).todayCount >= h.perDay).length;

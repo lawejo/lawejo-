@@ -435,3 +435,21 @@ button.failed {
 .protocol {
   white-space: pre-line;
 }
+
+.chain span {
+  display: grid;
+  place-items: center;
+  font-size: 0.55rem;
+  color: var(--muted);
+}
+
+.chain .done,
+.chain .partial {
+  color: var(--sky-mid);
+}
+
+.private-toggle {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}

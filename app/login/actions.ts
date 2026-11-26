@@ -10,7 +10,15 @@ import {
   type RegistrationResponseJSON,
 } from "@simplewebauthn/server";
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
-import { AUTH_COOKIE, SESSION_DAYS, createSession, passkeys } from "@/lib/auth";
+import {
+  AUTH_COOKIE,
+  PRIVATE_COOKIE,
+  PRIVATE_MINUTES,
+  PRIVATE_SCOPE,
+  SESSION_DAYS,
+  createSession,
+  passkeys,
+} from "@/lib/auth";
 
 const CHALLENGE_COOKIE = "lawejo_challenge";
 
@@ -49,14 +57,11 @@ export async function loginOptions() {
   return options;
 }
 
-// Returnerer en fejltekst, eller null når du er logget ind.
+// Returnerer en fejltekst, eller null når passkeyen er godkendt.
 // Passkeyen findes på signaturen og ikke på id'et, fordi NordPass ikke altid
 // melder samme id ved login som ved oprettelse. Det er signaturen, der beviser adgang.
-export async function login(response: AuthenticationResponseJSON): Promise<string | null> {
+async function verifyPasskey(response: AuthenticationResponseJSON): Promise<string | null> {
   const expectedChallenge = await takeChallenge();
-  const session = createSession();
-  if (!session) return "AUTH_SECRET mangler i Vercel.";
-
   const { rpID, origin } = await relyingParty();
   const verified = await Promise.all(
     passkeys().map(({ publicKey }) =>
@@ -79,6 +84,14 @@ export async function login(response: AuthenticationResponseJSON): Promise<strin
     console.warn(`Passkey ${response.id} afvist: ${verified.join(" | ") || "ingen passkeys i Vercel"}`);
     return "Passkeyen blev ikke godkendt. Er den lagt i Vercel, og er der redeployet?";
   }
+  return null;
+}
+
+export async function login(response: AuthenticationResponseJSON): Promise<string | null> {
+  const session = createSession();
+  if (!session) return "AUTH_SECRET mangler i Vercel.";
+  const error = await verifyPasskey(response);
+  if (error) return error;
 
   (await cookies()).set(AUTH_COOKIE, session, {
     httpOnly: true,
@@ -87,6 +100,25 @@ export async function login(response: AuthenticationResponseJSON): Promise<strin
     maxAge: SESSION_DAYS * 24 * 60 * 60,
   });
   return null;
+}
+
+export async function unlockPrivate(response: AuthenticationResponseJSON): Promise<string | null> {
+  const session = createSession(PRIVATE_MINUTES * 60 * 1000, PRIVATE_SCOPE);
+  if (!session) return "AUTH_SECRET mangler i Vercel.";
+  const error = await verifyPasskey(response);
+  if (error) return error;
+
+  (await cookies()).set(PRIVATE_COOKIE, session, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    maxAge: PRIVATE_MINUTES * 60,
+  });
+  return null;
+}
+
+export async function lockPrivate() {
+  (await cookies()).delete(PRIVATE_COOKIE);
 }
 
 export async function registerOptions() {

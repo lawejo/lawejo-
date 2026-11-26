@@ -22,6 +22,7 @@ export type Habit = {
   when: string;
   ifThen: string;
   protocol: string;
+  private: boolean;
 };
 
 export type CheckIn = {
@@ -49,6 +50,7 @@ export async function getHabits(): Promise<Habit[]> {
     when: readText(p["Hvornår"]),
     ifThen: readText(p["Hvis-så"]),
     protocol: readText(p["Protokol"]),
+    private: readCheckbox(p["Privat"]),
   }));
 }
 
@@ -83,7 +85,7 @@ export type HabitStats = {
   rate: number | null; // andel klarede dage, uden fridage og uden dagen i dag, hvis den ikke er klaret
   strength: number;
   succeeded: boolean;
-  days: DayState[]; // én pr. dag i målperioden (eller frem til i dag, hvis den er længere)
+  days: { date: string; state: DayState }[]; // én pr. dag i målperioden (eller frem til i dag, hvis den er længere)
 };
 
 export function habitStats(habit: Habit, checkIns: CheckIn[], today: string): HabitStats {
@@ -95,7 +97,7 @@ export function habitStats(habit: Habit, checkIns: CheckIn[], today: string): Ha
   let counted = 0;
   let sum = 0;
   let strength = 0;
-  const days: DayState[] = [];
+  const days: { date: string; state: DayState }[] = [];
 
   for (let i = 0; i < length; i++) {
     const date = addDays(start, i);
@@ -103,13 +105,13 @@ export function habitStats(habit: Habit, checkIns: CheckIn[], today: string): Ha
     const value = Math.min((checkIn?.count ?? 0) / habit.perDay, 1);
 
     if (i >= day) {
-      days.push("future");
+      days.push({ date, state: "future" });
     } else if (checkIn?.skip) {
-      days.push("skip");
+      days.push({ date, state: "skip" });
     } else if (date === today && value < 1) {
-      days.push("open");
+      days.push({ date, state: "open" });
     } else {
-      days.push(value === 1 ? "done" : value > 0 ? "partial" : "miss");
+      days.push({ date, state: value === 1 ? "done" : value > 0 ? "partial" : "miss" });
       counted++;
       sum += value;
       strength = strength * (1 - ALPHA) + ALPHA * value;

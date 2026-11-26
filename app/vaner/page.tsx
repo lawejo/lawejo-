@@ -1,6 +1,10 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { connection } from "next/server";
+import { PRIVATE_COOKIE, PRIVATE_MINUTES, PRIVATE_SCOPE, isValidSession } from "@/lib/auth";
+import { lockPrivate, unlockPrivate } from "@/app/login/actions";
+import { PasskeyButton } from "@/components/PasskeyButton";
 import { SUCCESS_RATE, addDays, getCheckIns, getHabits, habitStats, type Habit, type HabitStats } from "@/lib/habits";
 import { daysUntil, todayIso } from "@/lib/date";
 import { ActionButton } from "@/components/ActionButton";
@@ -25,6 +29,9 @@ async function HabitList({ searchParams }: Pick<PageProps<"/vaner">, "searchPara
   const { dag } = await searchParams;
   const date = dag === "igaar" ? addDays(today, -1) : today;
   const [habits, checkIns] = await Promise.all([getHabits(), getCheckIns()]);
+  // Private vaner vises kun, når de er låst op med passkey inden for de sidste 15 minutter.
+  const unlocked = isValidSession((await cookies()).get(PRIVATE_COOKIE)?.value, PRIVATE_SCOPE);
+  const shown = habits.filter((habit) => unlocked || !habit.private);
 
   return (
     <>
@@ -33,7 +40,7 @@ async function HabitList({ searchParams }: Pick<PageProps<"/vaner">, "searchPara
         <Link href="?dag=igaar" aria-current={dag === "igaar" ? "page" : undefined}>I går</Link>
       </nav>
 
-      {habits.map((habit) => (
+      {shown.map((habit) => (
         <HabitCard key={habit.id} habit={habit} stats={habitStats(habit, checkIns, date)} date={date} />
       ))}
 
@@ -45,6 +52,16 @@ async function HabitList({ searchParams }: Pick<PageProps<"/vaner">, "searchPara
           <HabitFields today={today} />
         </ActionForm>
       </details>
+
+      <div className="private-toggle">
+        {unlocked ? (
+          <ActionButton action={lockPrivate} className="secondary">
+            🔓 Lås ({PRIVATE_MINUTES} min)
+          </ActionButton>
+        ) : (
+          <PasskeyButton action={unlockPrivate} label="🔒" className="secondary" />
+        )}
+      </div>
     </>
   );
 }
@@ -65,7 +82,7 @@ function HabitFields({ habit, today }: { habit?: Habit; today: string }) {
         Gange pr. dag
         <input name="perDay" inputMode="numeric" defaultValue={habit?.perDay ?? 1} />
       </label>
-      <label className={habit ? undefined : "full"}>
+      <label>
         Startdato
         <input name="start" type="date" defaultValue={habit?.start || today} required />
       </label>
@@ -80,6 +97,13 @@ function HabitFields({ habit, today }: { habit?: Habit; today: string }) {
           </select>
         </label>
       )}
+      <label className={habit ? "full" : undefined}>
+        Synlighed
+        <select name="private" defaultValue={habit?.private ? "ja" : "nej"}>
+          <option value="nej">Synlig</option>
+          <option value="ja">Privat (kræver passkey)</option>
+        </select>
+      </label>
       <label className="full">
         Hvornår tæller dagen som klaret?
         <input name="check" defaultValue={habit?.check} />
@@ -125,9 +149,11 @@ function HabitCard({ habit, stats, date }: { habit: Habit; stats: HabitStats; da
               .join(" · ")}
       </p>
 
-      <div className="chain" aria-hidden>
-        {stats.days.map((state, i) => (
-          <span key={i} className={state} />
+      <div className="chain">
+        {stats.days.map(({ date, state }) => (
+          <span key={date} className={state} title={date}>
+            {Number(date.slice(8))}
+          </span>
         ))}
       </div>
 
