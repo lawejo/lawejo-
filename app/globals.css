@@ -203,7 +203,8 @@ summary::-webkit-details-marker {
 
 form {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* minmax(0, …) så et felt med egen minimumsbredde (fx datofelt på iOS) ikke presser formularen ud. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
   margin-top: 12px;
 }
@@ -225,6 +226,8 @@ input,
 select,
 textarea {
   font: inherit;
+  font-size: 16px; /* under 16 px zoomer iOS ind, når man trykker i feltet */
+  min-width: 0;
   color: var(--text);
   background: rgba(5, 7, 15, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.4); /* felter skal kunne ses (≥ 3:1) */
