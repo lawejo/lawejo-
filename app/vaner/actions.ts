@@ -3,7 +3,7 @@
 import { refresh } from "next/cache";
 import { isFullPage } from "@notionhq/client";
 import { notion, numberOrNull, richText } from "@/lib/notion";
-import { CHECKINS_DATA_SOURCE, HABITS_DATA_SOURCE } from "@/lib/habits";
+import { CHECKINS_DATA_SOURCE, HABITS_DATA_SOURCE, getHabits } from "@/lib/habits";
 
 // Én række pr. vane pr. dag: findes den, opdateres den, ellers oprettes den.
 async function saveCheckIn(habitId: string, habitName: string, date: string, values: { count?: number; skip?: boolean }) {
@@ -77,5 +77,20 @@ export async function updateHabit(habitId: string, formData: FormData) {
       Status: { select: { name: String(formData.get("status")) } },
     },
   });
+  refresh();
+}
+
+// De synlige vaner i ny rækkefølge. Skjulte (private) vaner beholder deres plads,
+// og de synlige fordeles på de pladser, de havde før.
+export async function reorderHabits(visibleIds: string[]) {
+  const habits = await getHabits();
+  const visible = new Set(visibleIds);
+  const queue = visibleIds.filter((id) => habits.some((h) => h.id === id));
+  if (queue.length !== habits.filter((h) => visible.has(h.id)).length) throw new Error("Listen er forældet");
+
+  const ordered = habits.map((h) => (visible.has(h.id) ? queue.shift()! : h.id));
+  await Promise.all(
+    ordered.map((id, i) => notion.pages.update({ page_id: id, properties: { Rækkefølge: { number: i + 1 } } })),
+  );
   refresh();
 }

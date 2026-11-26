@@ -8,7 +8,8 @@ import { SUCCESS_RATE, getCheckIns, getHabits, habitStats, type Habit } from "@/
 import { todayIso } from "@/lib/date";
 import { ActionButton } from "@/components/ActionButton";
 import { ActionForm } from "@/components/ActionForm";
-import { createHabit, updateHabit } from "./actions";
+import { createHabit, reorderHabits, updateHabit } from "./actions";
+import { SortableList } from "@/components/SortableList";
 import { HabitCard } from "./HabitCard";
 
 export default function VanerPage() {
@@ -32,19 +33,24 @@ async function HabitList() {
 
   return (
     <>
-      {shown.map((habit) => (
-        <HabitCard
-          key={habit.id}
-          habit={habit}
-          stats={habitStats(habit, checkIns, today)}
-          entries={Object.fromEntries(
-            checkIns.filter((c) => c.habitId === habit.id).map((c) => [c.date, { count: c.count, skip: c.skip }]),
-          )}
-          today={today}
-        >
-          <HabitDetails habit={habit} today={today} />
-        </HabitCard>
-      ))}
+      <SortableList
+        onReorder={reorderHabits}
+        items={shown.map((habit) => ({
+          id: habit.id,
+          content: (
+            <HabitCard
+              habit={habit}
+              stats={habitStats(habit, checkIns, today)}
+              entries={Object.fromEntries(
+                checkIns.filter((c) => c.habitId === habit.id).map((c) => [c.date, { count: c.count, skip: c.skip }]),
+              )}
+              today={today}
+            >
+              <HabitDetails habit={habit} today={today} />
+            </HabitCard>
+          ),
+        }))}
+      />
 
       <details className="card">
         <summary>

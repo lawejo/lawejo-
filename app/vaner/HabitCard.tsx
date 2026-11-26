@@ -85,6 +85,9 @@ export function HabitCard({ habit, stats, entries, today, children }: Props) {
   return (
     <section className={`card habit ${todayDone ? "done-today" : ""}`}>
       <header>
+        <button type="button" className="drag-handle" data-drag-handle aria-label={`Flyt ${habit.name}`}>
+          ⠿
+        </button>
         <strong>{habit.name}</strong>
         <span className={`badge ${stats.succeeded ? "done" : ""}`}>
           {stats.succeeded ? "Mål nået" : habit.status === "Aktiv" ? `${habit.goalDays} dage` : habit.status}

@@ -36,7 +36,10 @@ export type CheckIn = {
 export async function getHabits(): Promise<Habit[]> {
   const pages = await queryAll(HABITS_DATA_SOURCE, {
     filter: { property: "Status", select: { does_not_equal: "Arkiveret" } },
-    sorts: [{ property: "Startdato", direction: "ascending" }],
+    sorts: [
+      { property: "Rækkefølge", direction: "ascending" },
+      { property: "Startdato", direction: "ascending" },
+    ],
   });
 
   return pages.map(({ id, properties: p }) => ({

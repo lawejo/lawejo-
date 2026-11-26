@@ -541,3 +541,39 @@ button.link {
   color: var(--muted);
   font-size: 0.85rem;
 }
+
+/* Flyt rækkefølge: hold på kortet (touch) eller træk i ⠿ (mus/tastatur). */
+.sortable {
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.sortable.dragging {
+  position: relative;
+  z-index: 1;
+  opacity: 0.9;
+}
+
+.sortable.dragging .card {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.drag-handle {
+  grid-column: auto;
+  padding: 0 4px;
+  background: none;
+  color: var(--muted);
+  font-weight: 400;
+  cursor: grab;
+}
+
+/* Telefoner bruger langt tryk, så håndtaget vises kun med mus. */
+@media (hover: none) {
+  .drag-handle {
+    display: none;
+  }
+}
+
+.habit header strong {
+  flex: 1;
+}
