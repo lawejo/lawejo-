@@ -13,6 +13,7 @@ const sections = [
   { href: "/calisthenics", title: "Calisthenics", description: "Dagens pas og log", Today: CalisthenicsToday },
   { href: "/frokost", title: "Frokost", description: "Idéer til ca. 500 kcal" },
   { href: "/vaner", title: "Vaner", description: "Daglige vaner og protokoller", Today: HabitsToday },
+  { href: "/vaerktoejer", title: "Værktøjer", description: "Små beregnere" },
 ];
 
 export default function Home() {

@@ -577,3 +577,9 @@ button.link {
 .habit header strong {
   flex: 1;
 }
+
+.result {
+  margin: 16px 0 4px;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
