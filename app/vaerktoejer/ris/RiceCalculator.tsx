@@ -25,7 +25,10 @@ export function RiceCalculator() {
         </label>
         <label className="full">
           Kogemetode
-          <select value={riceCooker ? "riskoger" : "gryde"} onChange={(e) => setRiceCooker(e.target.value === "riskoger")}>
+          <select
+            value={riceCooker ? "riskoger" : "gryde"}
+            onChange={(e) => setRiceCooker(e.target.value === "riskoger")}
+          >
             <option value="gryde">Gryde</option>
             <option value="riskoger">Riskoger</option>
           </select>
