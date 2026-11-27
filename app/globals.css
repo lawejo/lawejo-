@@ -228,12 +228,40 @@ textarea {
   font: inherit;
   font-size: 16px; /* under 16 px zoomer iOS ind, når man trykker i feltet */
   min-width: 0;
+  color-scheme: dark; /* lyse ikoner og datovælger på mørk baggrund */
   color: var(--text);
   background: rgba(5, 7, 15, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.4); /* felter skal kunne ses (≥ 3:1) */
   border-radius: 10px;
   padding: 10px;
   width: 100%;
+}
+
+/* iOS tegner dato- og valgfelter som egne kontroller med egen bredde og højde.
+   Uden standardudseendet følger de samme mål som de andre felter. */
+input[type="date"],
+select {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  height: calc(1.45em + 22px); /* tekstlinje + padding + kant, som et almindeligt felt */
+}
+
+input[type="date"]::-webkit-date-and-time-value {
+  margin: 0;
+  text-align: left;
+}
+
+/* Valgfelter mister pilen uden standardudseende, så den tegnes her. */
+select {
+  padding-right: 32px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position:
+    right 16px center,
+    right 11px center;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
 }
 
 input:focus,
